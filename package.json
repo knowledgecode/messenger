@@ -1,10 +1,10 @@
 {
   "name": "@knowledgecode/messenger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Req/Rep Pub/Sub library for the browser",
   "main": "dist/messenger.js",
   "scripts": {
-    "minify": "terser -c -m --ecma 5 -o dist/messenger.min.js dist/messenger.js && terser -c -m --module -o dist/messenger.es.min.js dist/messenger.es.js",
+    "minify": "terser -c -m --ecma 5 -o dist/messenger.min.js messenger.js && terser -c -m --module -o dist/messenger.es.min.js messenger.es.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
