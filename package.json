@@ -1,0 +1,30 @@
+{
+  "name": "@knowledgecode/messenger",
+  "version": "0.1.0",
+  "description": "Req/Rep Pub/Sub library for the browser",
+  "main": "dist/messenger.js",
+  "scripts": {
+    "minify": "terser -c -m --ecma 5 -o dist/messenger.min.js dist/messenger.js && terser -c -m --module -o dist/messenger.es.min.js dist/messenger.es.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knowledgecode/messenger.git"
+  },
+  "keywords": [
+    "req",
+    "rep",
+    "pub",
+    "sub",
+    "message"
+  ],
+  "author": "KNOWLEDGECODE",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/knowledgecode/messenger/issues"
+  },
+  "homepage": "https://github.com/knowledgecode/messenger#readme",
+  "devDependencies": {
+    "terser": "^4.1.4"
+  }
+}
