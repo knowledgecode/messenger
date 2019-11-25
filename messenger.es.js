@@ -1,49 +1,69 @@
-export let Messenger = parent.Messenger;
+/**
+ * @preserve messenger (c) KNOWLEDGECODE | MIT
+ */
+export let messenger = parent.messenger;
 
-if (window === parent && !window.Messenger) {
+if (window === parent && !window.messenger) {
     const UUID = () => Math.random().toString(36).slice(2);
     const channel = UUID();
     const listeners = {};
     const subscribers = {};
     const reps = {};
+    const promise = data => {
+        if (data instanceof Promise) {
+            return data;
+        }
+        return Promise.resolve(data);
+    };
+    const nowait = queueMicrotask || (fn => Promise.resolve().then(fn));
 
     window.addEventListener('message', evt => {
         if (evt.origin !== location.origin || !evt.data || evt.data.channel !== channel) {
             return;
         }
+        evt.stopImmediatePropagation();
 
         const payload = evt.data.payload;
-        const id = payload.id;
+        const id = payload.id || '';
         const topic = payload.topic;
         const data = payload.data;
+        const timeout = payload.timeout || 0;
 
         switch (evt.data.method) {
         case 'send':
+            const rep = reps[id];
+
             if (listeners[topic]) {
-                reps[id].resolve(listeners[topic](data));
+                (() => {
+                    if (timeout > 0) {
+                        return Promise.race([
+                            promise(listeners[topic](data)),
+                            new Promise((_, reject) => setTimeout(reject, timeout))
+                        ]);
+                    }
+                    return promise(listeners[topic](data));
+                })().then(res => rep.resolve(res)).catch(err => rep.reject(err));
             } else {
-                reps[id].reject();
+                rep.reject();
             }
+            delete reps[id];
             break;
         case 'publish':
-            for (const sub of subscribers[topic] || []) {
-                sub(data);
+            for (const subsc of subscribers[topic] || []) {
+                nowait(() => subsc(data));
             }
-            reps[id].resolve();
             break;
         }
-        delete reps[id];
-        evt.stopImmediatePropagation();
     }, { capture: true, passive: true });
 
-    Messenger = class {
-        send (topic, data) {
+    messenger = new (class {
+        send (topic, data, timeout = 0) {
             return new Promise((resolve, reject) => {
                 const id = UUID();
-                const payload = { id, topic, data };
+                const payload = { id, topic, data, timeout };
 
                 reps[id] = { resolve, reject };
-                parent.postMessage({ channel, method: 'send', payload }, location.href);
+                parent.postMessage({ channel, method: 'send', payload }, location.origin);
             });
         }
 
@@ -56,31 +76,25 @@ if (window === parent && !window.Messenger) {
         }
 
         publish (topic, data) {
-            return new Promise((resolve, reject) => {
-                const id = UUID();
-                const payload = { id, topic, data };
-
-                reps[id] = { resolve, reject };
-                parent.postMessage({ channel, method: 'publish', payload }, location.href);
-            });
+            parent.postMessage({ channel, method: 'publish', payload: { topic, data } }, location.origin);
         }
 
         subscribe (topic, listener) {
-            const subs = subscribers[topic] = subscribers[topic] || [];
+            const subsc = subscribers[topic] = subscribers[topic] || [];
 
-            subs[subs.length] = listener;
+            subsc[subsc.length] = listener;
             return () => {
-                const index = subs.indexOf(listener);
+                const index = subsc.indexOf(listener);
 
                 if (~index) {
-                    subs.splice(index, 1);
-                    if (!subs.length) {
+                    subsc.splice(index, 1);
+                    if (!subsc.length) {
                         delete subscribers[topic];
                     }
                 }
             };
         }
-    };
+    })();
 
-    window.Messenger = Messenger;
+    window.messenger = messenger;
 }
