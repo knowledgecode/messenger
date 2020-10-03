@@ -12,7 +12,7 @@ Messaging between ...
 
 ## Caveats
 
-The following messaging is not supported:
+The following messaging are not supported:
 
 - cross-origin
 - multiple main windows
@@ -32,15 +32,15 @@ This library assumes `Promise` is available. Running it on unsupported browsers,
 ES Modules:
 
 ```javascript
-import { messenger } from './dist/messenger.es.min.js';
+import messenger from './esm/messenger.es.js';
 
 messenger.send('topic', { msg: 'hello' });
 ```
 
-Traditional:
+Manually:
 
 ```html
-<script src="./dist/messenger.min.js"></script>
+<script src="./messenger.js"></script>
 <script>
   messenger.send('topic', { msg: 'hello' });
 </script>
