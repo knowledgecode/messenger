@@ -27,7 +27,7 @@ if (window === parent && !messenger) {
     var nowait = queueMicrotask || setImmediate || function (fn) { Promise.resolve().then(fn); };
 
     window.addEventListener('message', function (evt) {
-        if (evt.origin !== origin || !evt.data || evt.data.channel !== channel) {
+        if ((target !== '*' && evt.origin !== origin) || !evt.data || evt.data.channel !== channel) {
             return;
         }
         evt.stopImmediatePropagation();
