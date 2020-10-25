@@ -8,7 +8,7 @@ if (window === parent && !messenger) {
         return Math.random().toString(36).slice(2);
     };
     var channel = UUID();
-    var target = location.origin === 'file://' ? '*' : location.origin;
+    var target = location.origin === 'file://' || location.origin === 'null' ? '*' : location.origin;
     var origin = target === '*' ? 'null' : target;
     var listeners = {};
     var subscribers = {};
