@@ -1,6 +1,6 @@
 {
   "name": "@knowledgecode/messenger",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Req/Rep Pub/Sub library for the browser",
   "main": "messenger.js",
   "module": "esm/messenger.es.js",
