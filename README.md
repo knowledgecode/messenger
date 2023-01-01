@@ -1,159 +1,228 @@
-# messenger
+# Messenger
 
-This is a `Req/Rep` `Pub/Sub` library for the browser.
+Messenger is a `Req/Rep` `Pub/Sub` library for iframes and workers.
 
 ## Features
 
-Messaging between ...
+Allows messages to be exchanged between ...
 
-- components in one window
-- a main window and iframes
-- iframes in one window
-
-## Caveats
-
-The following messaging are not supported:
-
-- cross-origin
-- multiple main windows
+- the main window and one or more iframes / workers.
+- multiple iframes.
+- multiple components.
 
 ## Installation
 
 via npm:
 
 ```shell
-npm install knowledgecode@messenger --save
+npm i knowledgecode@messenger
 ```
-
-This library assumes `Promise` is available. Running it on unsupported browsers, install a polyfill beforehand.
 
 ## Usage
 
-ES Modules:
-
 ```javascript
-import messenger from './esm/messenger.es.js';
-
-messenger.send('topic', { msg: 'hello' });
+import { MessengerClient, MessengerServer } from 'knowledgecode@messenger';
 ```
 
-Manually:
+ES Modules:
 
 ```html
-<script src="./messenger.js"></script>
-<script>
-  messenger.send('topic', { msg: 'hello' });
+<script type="module">
+  import { MessengerClient, MessengerServer } from '/path/to/messenger.js';
 </script>
 ```
 
-## API
+Traditional:
 
-### send(topic, data[, timeout])
+```html
+<script src="/path/to/messenger.js"></script>
+<script>
+  // It is provided with the global variable name "messenger".
+  const { MessengerClient, MessengerServer } = self.messenger;
+</script>
+```
+
+## Simple Example
+
+main.js
+```
+import { MessengerClient } from '/path/to/messenger.js';
+
+const messenger = new MessengerClient();
+const worker = new Worker('/path/to/worker.js');
+
+(async () => {
+    await messenger.connect(worker);
+
+    const answer = await messenger.req('add', { x: 2, y: 3 });
+
+    console.log(answer);    // => 5
+
+    messenger.send('close');
+    messenger.disconnect();
+})();
+```
+
+worker.js
+```
+importScripts('/path/to/messenger.js');
+
+const { MessengerServer } = self.messenger;
+const messenger = new MessengerServer(self);
+
+messenger.bind('add', data => {
+    return data.x + data.y;
+});
+
+messenger.bind('close', () => {
+    messenger.close();
+    // Close this worker.
+    self.close();
+});
+```
+
+## MessengerClient API
+
+### `constructor()`
+
+```javascript
+const messenger = new MessengerClient();
+```
+
+### `connect([endpoint[, options]])`
+
+- {**Object**} [endpoint] - an object that actually executes the `postMessage()`
+- {**Object**} [options] - connection options
+
+The `MessengerClient` must connect to a `MessengerServer` via `endpoint` before communication can begin. The `endpoint` is the object that actually executes the `postMessage()`. If omitted, it is assumed that `self` is set. The `options` are connection options and members of this object are `targetOrigin` and `timeout` (msec). If the `timeout` is omitted, this method waits forever for a successful connection.
+
+```javascript
+// To connect from the main window to a iframe.
+const iframe = window.frames[0];
+
+await messenger.connect(iframe, { targetOrigin: '*', timeout: 1000 })
+    .catch(e => console.log(e));
+```
+
+```javascript
+// To connect from the main window to a worker.
+const worker = new Worker('/path/to/worker.js');
+
+await messenger.connect(worker, { timeout: 1000 })
+    .catch(e => console.log(e));
+```
+
+### `disconnect()`
+
+Disconnects from the server.
+
+```javascript
+messenger.disconnect();
+```
+
+### `send(topic[, data])`
 
 - {**string**} topic - topic name
-- {**Object**} data - an object to send
-- {**number**} [timeout] - reply timeout [ms]
+- {**Object**} [data] - an object to send
 
-Send a message (some object) to a topic. This method will return `Promise`. The 3rd parameter, `timeout`, is optional. If omit it or set to `0`, the `Promise` will forever wait for reply from the other.
+Sends a message (some object) to a topic. This method does not wait for any reply. A `MessengerServer` can receive the message if it is bound to the same topic name in advance.
 
-### bind(topic, listener)
+```javascript
+messenger.send('greeting', { hello: 'world' });
+```
+
+### `req(topic[, data[, timeout]])`
 
 - {**string**} topic - topic name
-- {**Function**} listener - a listener to receive messages, or null
+- {**Object**} [data] - an object to send
+- {**number**} [timeout] - timeout (msec)
 
-Register a listener to wait for message on a topic. The topic name needs to be unique, listeners other than the first cannot bind on the same topic name. To unbind, call the function that this method will return.
+Sends a message (some object) to a topic. This method waits for some reply unlike `send()`. If `timeout` (msec) is omitted, this method waits forever for some reply.
 
-### publish(topic, data)
+```javascript
+const answer = await messenger.req('add', { x: 2, y: 3 })
+
+console.log(answer);
+```
+
+```javascript
+await messenger.req('add', { x: 2, y: 3 }, 5000)
+    .catch(e => console.log(e));    // Catch timeout error.
+```
+
+### `subscribe(topic, listener)`
+
+- {**string**} topic - topic name
+- {**Function**} listener - a listener to receive published messages
+
+Subscribes to messages on a topic.
+
+```javascript
+messenger.subscribe('news', data => console.log(data));
+```
+
+### `unsubscribe(topic[, listener])`
+
+Unsubscribes to messages on a topic. If listener is omitted, all listeners for the topic are cleared.
+
+- {**string**} topic - topic name
+- {**Function**} [listener] - a listener to receive published messages
+
+```javascript
+const listener = data => console.log(data);
+messenger.subscribe('news', listener);
+
+messenger.unsubscribe('news', listener);
+```
+
+## MessengerServer API
+
+### `constructor([endpoint])`
+
+- {**Object**} [endpoint] - an object that actually executes the `postMessage()`
+
+```javascript
+const messenger = new MessengerServer(self);
+```
+
+### `bind(topic, listener)`
+
+- {**string**} topic - topic name
+- {**Function**} listener - a listener to receive messages
+
+Binds a listener to listen for messages on a topic. The topic names must be unique, no other listener than the first can bind on the same topic name. This method returns `true` or `false` as binding result.
+
+```javascript
+messenger.bind('greeting', data => console.log(data));
+
+messenger.bind('add', data => {
+    // Reply to client.
+    return data.x + data.y;
+});
+```
+
+### `publish(topic, data)`
 
 - {**string**} topic - topic name
 - {**Object**} data - an object to publish
 
-Publish a message (some object) to all the subscribers on a topic. This method won't wait for reply from the subscribers, and won't be failed even there is no subscriber there.
-
-### subscribe(topic, listener)
-
-- {**string**} topic - topic name
-- {**Function**} listener - a listener to receive delivered messages
-
-Subscribe message on a topic. To unsubscribe, call the function that this method will return.
-
-## Req / Rep
-
-In Req / Rep model, we use `send()` and `bind()`.
-
-At first, using the `bind()`, `server-side` waits for messages from `clients`, with a topic, *"addition"*:
+Publish a message (some object) to all subscribers on a topic. This method does not wait for reply from the subscribers, and also does not fail even there are no subscribers at all.
 
 ```javascript
-messenger.bind('addition', data => {
-  return new Promise(resolve => {
-    resolve(data.x + data.y);
-  });
-});
+messenger.publish('notification', 'The process completed successfully.');
 ```
 
-The `Promise` may be omitted:
+### `close()`
+
+Closes all connections and shuts down the server.
 
 ```javascript
-messenger.bind('addition', data => {
-  return data.x + data.y;
-});
-```
-
-`Client-side` sends a message to the topic. If no one is waiting for messages with the topic, the `send()` will be failed (`Promise` will be rejected).
-
-```javascript
-messenger.send('addition', {
-  x: 2, y: 3
-}).then(rep => {
-  console.log(rep); // 5
-});
-```
-
-Use a returned function to unbind the topic.
-
-```javascript
-const unbind = messenger.bind('addition', data => {
-  return data.x + data.y;
-});
-
-// Unbind the "addition" topic.
-unbind();
-```
-
-## Pub / Sub
-
-In Pub / Sub model, we use `publish()` and `subscribe()`.
-
-Use `subscribe()` to subscribe to a topic.
-
-```javascript
-messenger.subscribe('input', data => {
-  console.log(`The ${data.key} is input!`); // The h key is input!
-});
-```
-
-Use `publish()` to publish a message to a topic (one or more subscribers). Even there is no subscriber, this method won't be failed. Also this method won't receive any replies from subscribers.
-
-```javascript
-messenger.publish('input', {
-  key: 'h', shift: false, ctrl: true
-});
-```
-
-Use a returned function to unsubscribe from the topic.
-
-```javascript
-const unsubscribe = messenger.subscribe('input', data => {
-  console.log(`The ${data.key} is input!`); // The h key is input!
-});
-
-// Unsubscribe the "input" topic.
-unsubscribe();
+messenger.close();
 ```
 
 ## Browser support
 
-Chrome, Firefox, Safari, Edge, IE9+
+Chrome, Safari, Firefox, Edge
 
 ## License
 
