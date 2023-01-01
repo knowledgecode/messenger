@@ -45,7 +45,7 @@ Traditional:
 ## Simple Example
 
 main.js
-```
+```javascript
 import { MessengerClient } from '/path/to/messenger.js';
 
 const messenger = new MessengerClient();
@@ -64,7 +64,7 @@ const worker = new Worker('/path/to/worker.js');
 ```
 
 worker.js
-```
+```javascript
 importScripts('/path/to/messenger.js');
 
 const { MessengerServer } = self.messenger;
