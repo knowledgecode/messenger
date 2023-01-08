@@ -1,12 +1,12 @@
 {
   "name": "@knowledgecode/messenger",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Req/Rep Pub/Sub library for iframes and workers",
   "main": "dist/umd/messenger.js",
   "module": "dist/esm/messenger.mjs",
   "types": "src/index.d.ts",
   "scripts": {
-    "build": "rollup --c",
+    "build": "rollup -c",
     "test": "npm run build && karma start",
     "test:ts": "tsd -f test/ts"
   },
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/knowledgecode/messenger#readme",
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.2.1",
+    "@rollup/plugin-terser": "^0.3.0",
     "chai": "^4.3.7",
     "karma": "^6.4.1",
     "karma-chai": "^0.1.0",
@@ -38,7 +38,7 @@
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "mocha": "^10.2.0",
-    "rollup": "^2.79.1",
+    "rollup": "^3.9.1",
     "tsd": "^0.25.0"
   }
 }
