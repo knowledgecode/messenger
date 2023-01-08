@@ -3,7 +3,7 @@ import { MessengerClient } from '/base/dist/esm/messenger.js';
 (async () => {
     const messenger = new MessengerClient();
 
-    await messenger.connect(self);
+    await messenger.connect('iframe', self);
 
     messenger.send('foo', 'bar');
 

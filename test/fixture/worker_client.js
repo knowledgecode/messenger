@@ -5,7 +5,7 @@ const { MessengerClient } = self.messenger;
 (async () => {
     const messenger = new MessengerClient();
 
-    await messenger.connect(self);
+    await messenger.connect('worker', self);
 
     messenger.send('foo', 'bar');
 

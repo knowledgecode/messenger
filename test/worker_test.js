@@ -16,27 +16,27 @@ describe('MessengerClient (worker)', () => {
     it('connect', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect(self.worker);
+        await messenger.connect('worker', self.worker);
     });
 
     it('connect failed1', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect({})
+        await messenger.connect('worker', {})
             .catch(e => expect(e.message).to.equal('The endpoint has no postMessage method.'));
     });
 
     it('connect failed2', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect(self.worker, { timeout: 1 })
+        await messenger.connect('worker', self.worker, { timeout: 1 })
             .catch(e => expect(e.message).to.equal('Connection timed out.'));
     });
 
     it('send', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect(self.worker);
+        await messenger.connect('worker', self.worker);
 
         messenger.send('foo', 'bar');
     });
@@ -54,7 +54,7 @@ describe('MessengerClient (worker)', () => {
     it('req', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect(self.worker);
+        await messenger.connect('worker', self.worker);
 
         await messenger.req('add', { x: 3, y: 2 })
             .then(res => expect(res).to.equal(5));
@@ -70,7 +70,7 @@ describe('MessengerClient (worker)', () => {
     it('subscribe', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect(self.worker);
+        await messenger.connect('worker', self.worker);
 
         messenger.subscribe('say', res => expect(res).to.equal('hello'));
     });
@@ -89,7 +89,7 @@ describe('MessengerClient (worker)', () => {
         const messenger = new MessengerClient();
         const listener = res => console.log(res);
 
-        await messenger.connect(self.worker);
+        await messenger.connect('worker', self.worker);
 
         messenger.subscribe('say', listener);
         messenger.unsubscribe('say', listener);
@@ -98,7 +98,7 @@ describe('MessengerClient (worker)', () => {
     it('disconnect', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect(self.worker);
+        await messenger.connect('worker', self.worker);
 
         messenger.disconnect();
     });
@@ -107,7 +107,7 @@ describe('MessengerClient (worker)', () => {
 describe('MessengerServer (worker)', () => {
     beforeEach(() => {
         self.worker = new Worker('/base/test/fixture/worker_client.js');
-        self.messenger = new MessengerServer(self.worker);
+        self.messenger = new MessengerServer('worker', self.worker);
     });
 
     afterEach(() => self.messenger.close());

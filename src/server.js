@@ -1,16 +1,16 @@
 const promise = p => p instanceof Promise ? p : Promise.resolve(p);
 
 export class Server {
-    constructor (endpoint = self) {
+    constructor (name, endpoint = self) {
         this._clients = new Map();
         this._listeners = new Map();
         this._subscribers = new Map();
         this._endpoint = endpoint;
         this._accept = evt => {
-            const { method } = evt.data || {};
+            const { name: _name, method } = evt.data || {};
             const [ port ] = evt.ports || [];
 
-            if (method !== 'connect' || !port) {
+            if (name !== _name || method !== 'connect' || !port) {
                 return;
             }
             evt.stopImmediatePropagation();

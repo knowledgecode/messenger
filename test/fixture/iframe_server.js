@@ -1,6 +1,6 @@
 import { MessengerServer } from '/base/dist/esm/messenger.js';
 
-const messenger = new MessengerServer(self);
+const messenger = new MessengerServer('iframe', self);
 
 messenger.bind('add', data => data.x + data.y);
 
