@@ -20,13 +20,13 @@ describe('MessengerClient (iframe)', () => {
         const messenger = new MessengerClient();
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe);
+        await messenger.connect('iframe', iframe);
     });
 
     it('connect failed1', async () => {
         const messenger = new MessengerClient();
 
-        await messenger.connect({})
+        await messenger.connect('iframe', {})
             .catch(e => expect(e.message).to.equal('The endpoint has no postMessage method.'));
     });
 
@@ -34,7 +34,7 @@ describe('MessengerClient (iframe)', () => {
         const messenger = new MessengerClient();
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe, { timeout: 1 })
+        await messenger.connect('iframe', iframe, { timeout: 1 })
             .catch(e => expect(e.message).to.equal('Connection timed out.'));
     });
 
@@ -42,7 +42,7 @@ describe('MessengerClient (iframe)', () => {
         const messenger = new MessengerClient();
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe);
+        await messenger.connect('iframe', iframe);
 
         messenger.send('foo', 'bar');
     });
@@ -61,7 +61,7 @@ describe('MessengerClient (iframe)', () => {
         const messenger = new MessengerClient();
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe);
+        await messenger.connect('iframe', iframe);
 
         await messenger.req('add', { x: 3, y: 2 })
             .then(res => expect(res).to.equal(5));
@@ -78,7 +78,7 @@ describe('MessengerClient (iframe)', () => {
         const messenger = new MessengerClient();
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe);
+        await messenger.connect('iframe', iframe);
 
         messenger.subscribe('say', res => expect(res).to.equal('hello'));
     });
@@ -98,7 +98,7 @@ describe('MessengerClient (iframe)', () => {
         const listener = res => console.log(res);
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe);
+        await messenger.connect('iframe', iframe);
 
         messenger.subscribe('say', listener);
         messenger.unsubscribe('say', listener);
@@ -108,7 +108,7 @@ describe('MessengerClient (iframe)', () => {
         const messenger = new MessengerClient();
         const iframe = document.querySelector('iframe').contentWindow;
 
-        await messenger.connect(iframe);
+        await messenger.connect('iframe', iframe);
 
         messenger.disconnect();
     });
@@ -123,7 +123,7 @@ describe('MessengerServer (iframe)', () => {
             iframe.onload = resolve;
             document.body.appendChild(iframe);
 
-            self.messenger = new MessengerServer(self.frames[0]);
+            self.messenger = new MessengerServer('iframe', self.frames[0]);
         });
     });
 

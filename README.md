@@ -15,27 +15,27 @@ Allows messages to be exchanged between ...
 via npm:
 
 ```shell
-npm i knowledgecode@messenger
+npm i @knowledgecode/messenger
 ```
 
 ## Usage
 
 ```javascript
-import { MessengerClient, MessengerServer } from 'knowledgecode@messenger';
+import { MessengerClient, MessengerServer } from '@knowledgecode/messenger';
 ```
 
 ES Modules:
 
 ```html
 <script type="module">
-  import { MessengerClient, MessengerServer } from '/path/to/messenger.js';
+  import { MessengerClient, MessengerServer } from '/path/to/esm/messenger.js';
 </script>
 ```
 
 Traditional:
 
 ```html
-<script src="/path/to/messenger.js"></script>
+<script src="/path/to/umd/messenger.js"></script>
 <script>
   // It is provided with the global variable name "messenger".
   const { MessengerClient, MessengerServer } = self.messenger;
@@ -46,13 +46,13 @@ Traditional:
 
 main.js
 ```javascript
-import { MessengerClient } from '/path/to/messenger.js';
+import { MessengerClient } from '/path/to/esm/messenger.js';
 
 const messenger = new MessengerClient();
 const worker = new Worker('/path/to/worker.js');
 
 (async () => {
-    await messenger.connect(worker);
+    await messenger.connect('example', worker);
 
     const answer = await messenger.req('add', { x: 2, y: 3 });
 
@@ -65,10 +65,10 @@ const worker = new Worker('/path/to/worker.js');
 
 worker.js
 ```javascript
-importScripts('/path/to/messenger.js');
+importScripts('/path/to/umd/messenger.js');
 
 const { MessengerServer } = self.messenger;
-const messenger = new MessengerServer(self);
+const messenger = new MessengerServer('example', self);
 
 messenger.bind('add', data => {
     return data.x + data.y;
@@ -89,18 +89,19 @@ messenger.bind('close', () => {
 const messenger = new MessengerClient();
 ```
 
-### `connect([endpoint[, options]])`
+### `connect(name, [endpoint[, options]])`
 
+- {**string**} name - unique name of the MessengerServer to connect to
 - {**Object**} [endpoint] - an object that actually executes the `postMessage()`
 - {**Object**} [options] - connection options
 
-The `MessengerClient` must connect to a `MessengerServer` via `endpoint` before communication can begin. The `endpoint` is the object that actually executes the `postMessage()`. If omitted, it is assumed that `self` is set. The `options` are connection options and members of this object are `targetOrigin` and `timeout` (msec). If the `timeout` is omitted, this method waits forever for a successful connection.
+The `MessengerClient` must connect to a `MessengerServer` via `endpoint` before communication can begin. To identify the `MessengerServer` to connect to, pass the unique name of the `MessengerServer` as the first argument. The `endpoint` is the object that actually executes the `postMessage()`. If omitted, it is assumed that `self` is set. The `options` are connection options and members of this object are `targetOrigin` and `timeout` (msec). If the `timeout` is omitted, this method will wait forever for a successful connection.
 
 ```javascript
 // To connect from the main window to a iframe.
 const iframe = window.frames[0];
 
-await messenger.connect(iframe, { targetOrigin: '*', timeout: 1000 })
+await messenger.connect('iframe', iframe, { targetOrigin: '*', timeout: 1000 })
     .catch(e => console.log(e));
 ```
 
@@ -108,7 +109,7 @@ await messenger.connect(iframe, { targetOrigin: '*', timeout: 1000 })
 // To connect from the main window to a worker.
 const worker = new Worker('/path/to/worker.js');
 
-await messenger.connect(worker, { timeout: 1000 })
+await messenger.connect('worker', worker, { timeout: 1000 })
     .catch(e => console.log(e));
 ```
 
@@ -177,13 +178,16 @@ messenger.unsubscribe('news', listener);
 
 ## MessengerServer API
 
-### `constructor([endpoint])`
+### `constructor(name, [endpoint])`
 
+- {**string**} name - unique name of the MessengerServer
 - {**Object**} [endpoint] - an object that actually executes the `postMessage()`
 
 ```javascript
-const messenger = new MessengerServer(self);
+const messenger = new MessengerServer('server', self);
 ```
+
+The `name` is a unique name by which clients identify this MessengerServer. The `endpoint` is the object that actually executes the `postMessage()`. If omitted, it is assumed that `self` is set.
 
 ### `bind(topic, listener)`
 

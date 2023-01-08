@@ -42,7 +42,7 @@ export class Client {
         this._port.postMessage({ method, payload: { client: this._id, id, topic, data } });
     }
 
-    connect (endpoint = self, options = {}) {
+    connect (name, endpoint = self, options = {}) {
         if (this._port) {
             return Promise.resolve();
         }
@@ -72,7 +72,7 @@ export class Client {
                     resolve();
                 }
             };
-            endpoint.postMessage({ method: 'connect' }, { targetOrigin: targetOrigin || '/', transfer: [port2] });
+            endpoint.postMessage({ name, method: 'connect' }, { targetOrigin: targetOrigin || '/', transfer: [port2] });
         });
     }
 
