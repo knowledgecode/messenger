@@ -1,44 +1,64 @@
 {
   "name": "@knowledgecode/messenger",
-  "version": "0.5.0",
-  "description": "Req/Rep Pub/Sub library for iframes and workers",
-  "main": "dist/umd/messenger.js",
-  "module": "dist/esm/messenger.mjs",
-  "types": "src/index.d.ts",
-  "scripts": {
-    "build": "rollup -c",
-    "test": "npm run build && karma start",
-    "test:ts": "tsd -f test/ts"
+  "version": "0.6.0",
+  "description": "Type-safe Request/Reply and Pub/Sub messaging library for browser applications",
+  "keywords": [
+    "request-reply",
+    "pub-sub",
+    "pubsub",
+    "messaging",
+    "communication",
+    "typescript",
+    "type-safe",
+    "iframe",
+    "worker",
+    "browser",
+    "message-channel",
+    "components"
+  ],
+  "homepage": "https://github.com/knowledgecode/messenger#readme",
+  "bugs": {
+    "url": "https://github.com/knowledgecode/messenger/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/knowledgecode/messenger.git"
   },
-  "keywords": [
-    "req",
-    "rep",
-    "pub",
-    "sub",
-    "pubsub",
-    "iframe",
-    "worker"
-  ],
-  "author": "KNOWLEDGECODE",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/knowledgecode/messenger/issues"
+  "author": "KNOWLEDGECODE",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "homepage": "https://github.com/knowledgecode/messenger#readme",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist/**/*"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rollup -c",
+    "lint": "eslint",
+    "test": "vitest run"
+  },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.3.0",
-    "chai": "^4.3.7",
-    "karma": "^6.4.1",
-    "karma-chai": "^0.1.0",
-    "karma-chrome-launcher": "^3.1.1",
-    "karma-mocha": "^2.0.1",
-    "karma-mocha-reporter": "^2.2.5",
-    "mocha": "^10.2.0",
-    "rollup": "^3.9.1",
-    "tsd": "^0.25.0"
+    "@eslint/js": "^9.39.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@stylistic/eslint-plugin": "^5.6.1",
+    "@vitest/browser-playwright": "^4.0.16",
+    "eslint": "^9.39.2",
+    "playwright": "^1.57.0",
+    "rollup": "^4.54.0",
+    "rollup-plugin-dts": "^6.3.0",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "rollup-plugin-license": "^3.6.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.1",
+    "vitest": "^4.0.16"
   }
 }
