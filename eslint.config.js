@@ -27,9 +27,7 @@ export default defineConfig(
     rules: {
       '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
       '@typescript-eslint/no-empty-function': 'off',
-      '@typescript-eslint/no-extraneous-class': 'off',
       '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
-      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
 
       'accessor-pairs': 'error',
       'array-callback-return': 'error',
@@ -113,7 +111,7 @@ export default defineConfig(
       '@stylistic/function-call-spacing': 'warn',
       '@stylistic/generator-star-spacing': 'warn',
       '@stylistic/implicit-arrow-linebreak': 'warn',
-      '@stylistic/indent': ['warn', 2, { ignoreComments: true }],
+      '@stylistic/indent': ['warn', 2, { SwitchCase: 0, ignoreComments: true }],
       '@stylistic/jsx-quotes': 'warn',
       '@stylistic/key-spacing': 'warn',
       '@stylistic/keyword-spacing': 'warn',
