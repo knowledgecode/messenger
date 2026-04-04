@@ -1,6 +1,6 @@
 {
   "name": "@knowledgecode/messenger",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Type-safe Request/Reply and Pub/Sub messaging library for browser applications",
   "keywords": [
     "request-reply",
@@ -50,15 +50,15 @@
     "@eslint/js": "^10.0.1",
     "@rollup/plugin-terser": "^1.0.0",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@vitest/browser-playwright": "^4.0.18",
-    "eslint": "^10.0.3",
-    "playwright": "^1.58.2",
-    "rollup": "^4.59.0",
-    "rollup-plugin-dts": "^6.3.0",
+    "@vitest/browser-playwright": "^4.1.2",
+    "eslint": "^10.2.0",
+    "playwright": "^1.59.1",
+    "rollup": "^4.60.1",
+    "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
     "rollup-plugin-license": "^3.7.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1",
-    "vitest": "^4.0.18"
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.0",
+    "vitest": "^4.1.2"
   }
 }
