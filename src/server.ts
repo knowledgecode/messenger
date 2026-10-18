@@ -90,7 +90,7 @@ export class Server {
     this._endpoint.addEventListener('message', this._accept as EventListener);
   }
 
-  _listener (evt: MessageEvent<Packet>) {
+  private _listener (evt: MessageEvent<Packet>) {
     switch (evt.data.method) {
     case 'send': {
       const { topic, data } = evt.data.payload;
@@ -150,7 +150,7 @@ export class Server {
     }
   }
 
-  _postMessage(client: string, message: Packet) {
+  private _postMessage(client: string, message: Packet) {
     const port = this._clients.get(client);
     port?.postMessage(message);
   }

@@ -33,7 +33,7 @@ export class Client {
     this._subscribers = new Map<string, Set<TopicListener>>();
   }
 
-  _listener (evt: MessageEvent<Packet>) {
+  private _listener (evt: MessageEvent<Packet>) {
     switch (evt.data.method) {
     case 'reply': {
       const { id, data, error } = evt.data.payload;
@@ -66,7 +66,7 @@ export class Client {
     }
   }
 
-  _postMessage (message: Packet) {
+  private _postMessage (message: Packet) {
     this._port?.postMessage(message);
   }
 
@@ -136,7 +136,7 @@ export class Client {
     this._connected = undefined;
   }
 
-  send (topic: string, data: unknown) {
+  send (topic: string, data?: unknown) {
     if (!this._port) {
       throw new Error('Not connected.');
     }
