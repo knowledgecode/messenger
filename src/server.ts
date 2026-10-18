@@ -57,8 +57,6 @@ export type Packet<T = unknown> = {
   };
 };
 
-const promise = (p: unknown): Promise<unknown> => p instanceof Promise ? p : Promise.resolve(p);
-
 export class Server {
   private readonly _clients: Map<string, MessagePort>;
 
@@ -92,7 +90,7 @@ export class Server {
     this._endpoint.addEventListener('message', this._accept as EventListener);
   }
 
-  _listener (evt: MessageEvent<Packet>) {
+  private _listener (evt: MessageEvent<Packet>) {
     switch (evt.data.method) {
     case 'send': {
       const { topic, data } = evt.data.payload;
@@ -104,7 +102,9 @@ export class Server {
       const listener = this._listeners.get(topic);
 
       if (listener) {
-        promise(listener(data))
+        new Promise<unknown>(resolve => {
+          resolve(listener(data));
+        })
           .then(res => this._postMessage(client, {
             method: 'reply',
             payload: { id, topic, data: res }
@@ -150,7 +150,7 @@ export class Server {
     }
   }
 
-  _postMessage(client: string, message: Packet) {
+  private _postMessage(client: string, message: Packet) {
     const port = this._clients.get(client);
     port?.postMessage(message);
   }

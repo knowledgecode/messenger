@@ -6,5 +6,7 @@ messenger.bind<{ x: number; y: number }>('add', data => {
   return data && data.x + data.y;
 });
 
-// Delay publishing slightly to wait for connections from subscribers.
-setTimeout(() => messenger.publish('say', 'hello'), 500);
+// The publish is posted ahead of the reply on the same port, so subscribers receive it before req('greet') resolves.
+messenger.bind('greet', () => {
+  messenger.publish('say', 'hello');
+});

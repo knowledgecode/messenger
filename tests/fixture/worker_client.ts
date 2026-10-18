@@ -9,10 +9,13 @@ import { MessengerClient } from '@/index.ts';
 
   messenger.subscribe<string>('command', data => {
     if (data === 'stop') {
+      messenger.send('stopped');
       messenger.disconnect();
     }
   });
 
+  // Rejects when a test leaves 'add' unbound, or when the 'command' listener disconnects first.
   await messenger.req<number>('add', { x: 3, y: 4 })
-    .then(() => messenger.disconnect());
+    .catch(() => undefined);
+  messenger.disconnect();
 })();

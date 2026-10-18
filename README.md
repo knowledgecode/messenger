@@ -256,6 +256,7 @@ Establishes a connection to a MessengerServer.
 
 - `Error` if endpoint doesn't have `postMessage()` method
 - `Error` if connection times out
+- `Error` if `disconnect()` is called before the connection is established
 
 **Examples:**
 
@@ -281,7 +282,7 @@ await messenger.connect('main', self);
 
 #### `disconnect()`
 
-Disconnects from the server, clears all subscriptions, and cleans up resources.
+Disconnects from the server, clears all subscriptions, and cleans up resources. A pending `connect()` or `req()` is rejected with an `Error`.
 
 ```typescript
 messenger.disconnect();
@@ -294,7 +295,7 @@ Sends a one-way message to a topic. Does not wait for a response.
 **Parameters:**
 
 - `topic` (**string**): Topic name
-- `data` (**unknown**): Data to send
+- `data` (**unknown**, optional): Data to send
 
 **Throws:** `Error` if not connected
 
@@ -323,6 +324,8 @@ Sends a request to a topic and waits for a response.
 - `Error` if not connected
 - `Error` if request times out
 - `Error` if the topic is not bound on the server
+- `Error` if the server's handler throws or returns a rejected Promise
+- `Error` if `disconnect()` is called before the response arrives
 
 **Examples:**
 
@@ -378,7 +381,7 @@ messenger.subscribe<Notification>('notifications', (data) => {
 
 #### `unsubscribe(topic, listener)`
 
-Unsubscribes from a topic.
+Unsubscribes from a topic. Once a topic has no listeners left, the server stops publishing it to this client.
 
 **Parameters:**
 

@@ -1,4 +1,4 @@
-import { describe, beforeEach, afterEach, it, expect } from 'vitest';
+import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { MessengerClient, MessengerServer } from '@/index.ts';
 
 describe('MessengerClient (worker)', () => {
@@ -8,13 +8,8 @@ describe('MessengerClient (worker)', () => {
     worker = new Worker('/tests/fixture/worker_server.ts', { type: 'module' });
   });
 
-  afterEach(async () => {
-    await new Promise<void>(resolve => {
-      setTimeout(() => {
-        worker.terminate();
-        resolve();
-      }, 500);
-    });
+  afterEach(() => {
+    worker.terminate();
   });
 
   it('connect', async () => {
@@ -66,11 +61,14 @@ describe('MessengerClient (worker)', () => {
 
     await messenger.connect('worker', worker);
 
-    messenger.subscribe<string>('say', (res) => {
-      if (res) {
-        expect(res).toBe('hello');
-      }
+    const received = new Promise<string | undefined>(resolve => {
+      messenger.subscribe<string>('say', (res) => {
+        resolve(res);
+      });
     });
+
+    await messenger.req('greet');
+    await expect(received).resolves.toBe('hello');
   });
 
   it('subscribe without connection', () => {
@@ -82,12 +80,15 @@ describe('MessengerClient (worker)', () => {
 
   it('unsubscribe', async () => {
     const messenger = new MessengerClient();
-    const listener = () => {};
+    const listener = vi.fn();
 
     await messenger.connect('worker', worker);
 
     messenger.subscribe('say', listener);
     messenger.unsubscribe('say', listener);
+    await messenger.req('greet');
+
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('disconnect', async () => {
@@ -108,38 +109,42 @@ describe('MessengerServer (worker)', () => {
     messenger = new MessengerServer('worker', worker);
   });
 
-  afterEach(() => messenger.close());
+  afterEach(() => {
+    messenger.close();
+    worker.terminate();
+  });
 
   it('send (bind)', async () => {
-    await new Promise<void>(resolve => {
-      messenger.bind<string>('foo', (data) => {
-        if (data) {
-          expect(data).toBe('bar');
-        }
-        resolve();
+    const data = await new Promise<string | undefined>(resolve => {
+      messenger.bind<string>('foo', (req) => {
+        resolve(req);
       });
     });
+
+    expect(data).toBe('bar');
   });
 
   it('reply (bind)', async () => {
-    await new Promise<void>(resolve => {
-      messenger.bind<{ x: number; y: number }>('add', (data) => {
-        if (!data) {
-          return 0;
-        }
-        expect(data).toEqual({ x: 3, y: 4 });
-        resolve();
-        return data.x + data.y;
+    const data = await new Promise<{ x: number; y: number } | undefined>(resolve => {
+      messenger.bind<{ x: number; y: number }>('add', (req) => {
+        resolve(req);
+        return req ? req.x + req.y : 0;
       });
     });
+
+    expect(data).toEqual({ x: 3, y: 4 });
   });
 
   it('publish', async () => {
     await new Promise<void>(resolve => {
-      setTimeout(() => {
-        messenger.publish('command', 'stop');
+      messenger.bind('stopped', () => {
         resolve();
-      }, 500);
+      });
+      // The client subscribes to 'command' before requesting 'add', so a publish from this handler reaches it.
+      messenger.bind('add', () => {
+        messenger.publish('command', 'stop');
+        return 0;
+      });
     });
   });
 });
@@ -151,13 +156,8 @@ describe('MessengerClient (worker) - connection timeout', () => {
     worker = new Worker('/tests/fixture/worker_server.ts', { type: 'module' });
   });
 
-  afterEach(async () => {
-    await new Promise<void>(resolve => {
-      setTimeout(() => {
-        worker.terminate();
-        resolve();
-      }, 500);
-    });
+  afterEach(() => {
+    worker.terminate();
   });
 
   it('connect timeout', async () => {
