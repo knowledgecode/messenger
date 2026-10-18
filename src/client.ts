@@ -18,6 +18,8 @@ export class Client {
 
   private _connected: Promise<void> | undefined;
 
+  private _abortConnect: (() => void) | undefined;
+
   private readonly _reps: Map<string, Receiver>;
 
   private readonly _subscribers: Map<string, Set<TopicListener>>;
@@ -26,6 +28,7 @@ export class Client {
     this._id = undefined;
     this._port = undefined;
     this._connected = undefined;
+    this._abortConnect = undefined;
     this._reps = new Map<string, Receiver>();
     this._subscribers = new Map<string, Set<TopicListener>>();
   }
@@ -78,16 +81,18 @@ export class Client {
       const { port1, port2 } = new MessageChannel();
       const { targetOrigin, timeout } = options;
       const timerId = (timeout ?? 0) > 0 ? setTimeout(() => {
-        this._port?.close();
-        this._port = undefined;
-        this._connected = undefined;
         reject(new Error('Connection timed out.'));
+        this.disconnect();
       }, timeout) : 0;
       const message: Packet = {
         method: 'connect',
         name
       };
 
+      this._abortConnect = () => {
+        clearTimeout(timerId);
+        reject(new Error('Disconnected.'));
+      };
       this._port = port1;
       this._port.onmessage = (evt: MessageEvent<Packet>) => {
         const { method } = evt.data;
@@ -98,6 +103,7 @@ export class Client {
           if (timerId) {
             clearTimeout(timerId);
           }
+          this._abortConnect = undefined;
           resolve();
         }
       };
@@ -108,16 +114,21 @@ export class Client {
   }
 
   disconnect () {
-    this.unsubscribe();
+    this._abortConnect?.();
+    this._abortConnect = undefined;
+    this._subscribers.clear();
     for (const rep of this._reps.values()) {
       clearTimeout(rep.timerId);
+      rep.reject(new Error('Disconnected.'));
     }
     this._reps.clear();
-    if (this._id && this._port) {
-      this._postMessage({
-        method: 'disconnect',
-        payload: { client: this._id }
-      });
+    if (this._port) {
+      if (this._id) {
+        this._postMessage({
+          method: 'disconnect',
+          payload: { client: this._id }
+        });
+      }
       this._port.close();
       this._port = undefined;
       this._id = undefined;
