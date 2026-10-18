@@ -57,8 +57,6 @@ export type Packet<T = unknown> = {
   };
 };
 
-const promise = (p: unknown): Promise<unknown> => p instanceof Promise ? p : Promise.resolve(p);
-
 export class Server {
   private readonly _clients: Map<string, MessagePort>;
 
@@ -104,7 +102,9 @@ export class Server {
       const listener = this._listeners.get(topic);
 
       if (listener) {
-        promise(listener(data))
+        new Promise<unknown>(resolve => {
+          resolve(listener(data));
+        })
           .then(res => this._postMessage(client, {
             method: 'reply',
             payload: { id, topic, data: res }
