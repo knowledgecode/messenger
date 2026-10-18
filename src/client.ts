@@ -188,18 +188,29 @@ export class Client {
   }
 
   unsubscribe (topic?: string, listener?: TopicListener) {
-    if (topic) {
-      if (listener) {
-        const subscribers = this._subscribers.get(topic);
-
-        if (subscribers) {
-          subscribers.delete(listener);
-        }
-      } else {
-        this._subscribers.delete(topic);
+    if (!topic) {
+      for (const key of [...this._subscribers.keys()]) {
+        this.unsubscribe(key);
       }
-    } else {
-      this._subscribers.clear();
+      return;
+    }
+
+    const subscribers = this._subscribers.get(topic);
+
+    if (!subscribers) {
+      return;
+    }
+    if (listener) {
+      subscribers.delete(listener);
+    }
+    if (!listener || subscribers.size === 0) {
+      this._subscribers.delete(topic);
+      if (this._id) {
+        this._postMessage({
+          method: 'unsubscribe',
+          payload: { client: this._id, topic }
+        });
+      }
     }
   }
 }
